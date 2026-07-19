@@ -1,0 +1,89 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-surface-light text-slate-800 antialiased dark:bg-surface-dark dark:text-slate-100;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: theme("colors.slate.300") transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-slate-300 dark:bg-slate-700;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-400 dark:bg-slate-600;
+}
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  min-height: 320px;
+  border-radius: 1rem;
+  z-index: 0;
+}
+
+.leaflet-popup-content-wrapper {
+  @apply rounded-xl shadow-card;
+}
+
+@layer components {
+  .glass-panel {
+    @apply border border-white/60 bg-white/70 backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/60;
+  }
+
+  .surface-card {
+    @apply rounded-2xl border border-slate-200/70 bg-white shadow-soft dark:border-slate-800 dark:bg-slate-900;
+  }
+
+  .skeleton {
+    @apply relative overflow-hidden bg-slate-200 dark:bg-slate-800;
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.55),
+      transparent
+    );
+    background-size: 400px 100%;
+    background-repeat: no-repeat;
+    animation: shimmer 1.6s infinite linear;
+  }
+
+  .dark .skeleton {
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.06),
+      transparent
+    );
+  }
+
+  .focus-ring {
+    @apply outline-none ring-0 focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-brand-gradient bg-clip-text text-transparent;
+  }
+}

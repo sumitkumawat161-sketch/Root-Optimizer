@@ -1,0 +1,75 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: route_optimizer
+    ports:
+      - "5432:5432"
+    volumes:
+      - route_optimizer_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  # Self-hosted OSRM routing engine. Requires pre-processed map data in
+  # ./osrm-data (see osrm-data/README.md for the one-time extract/partition/
+  # customize steps). No Google Maps API is used anywhere in this stack.
+  osrm:
+    image: osrm/osrm-backend:latest
+    restart: unless-stopped
+    command: osrm-routed --algorithm mld /data/map.osrm
+    volumes:
+      - ./osrm-data:/data
+    ports:
+      - "5001:5000"
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      osrm:
+        condition: service_started
+    environment:
+      PORT: 5000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/route_optimizer
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: change_this_secret_in_production
+      JWT_EXPIRES_IN: 7d
+      CLIENT_URL: http://localhost:4173
+      OSRM_URL: http://osrm:5000
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:5000/api
+        VITE_SOCKET_URL: http://localhost:5000
+
+    environment:
+      VITE_API_URL: http://localhost:5000/api
+      VITE_SOCKET_URL: http://localhost:5000
+
+    ports:
+      - "4173:4173"
+volumes:
+  route_optimizer_pgdata:
